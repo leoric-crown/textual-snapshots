@@ -65,21 +65,21 @@ jobs:
     - name: Run visual tests
       run: |
         python -c "
-import asyncio
-from textual_snapshots import capture_app_screenshot
-from textual.app import App
-
-class TestApp(App):
-    def compose(self):
-        from textual.widgets import Static
-        yield Static('Test App', id='test')
-
-async def test():
-    result = await capture_app_screenshot(TestApp(), context='ci_test')
-    print(f'✓ Visual test passed: {result.success}')
-    assert result.success
-
-asyncio.run(test())
+        import asyncio
+        from textual_snapshots import capture_app_screenshot
+        from textual.app import App
+        
+        class TestApp(App):
+            def compose(self):
+                from textual.widgets import Static
+                yield Static('Test App', id='test')
+        
+        async def test():
+            result = await capture_app_screenshot(TestApp(), context='ci_test')
+            print(f'✓ Visual test passed: {result.success}')
+            assert result.success
+        
+        asyncio.run(test())
         "
     
     - name: Upload screenshots
