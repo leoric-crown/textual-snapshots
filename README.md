@@ -266,9 +266,7 @@ python custom_plugins.py
 ## Community & Support
 
 - 💬 **[GitHub Discussions](https://github.com/testinator-dev/textual-snapshots/discussions)** - Questions and community
-- 🐛 **[Issues](https://github.com/testinator-dev/textual-snapshots/issues)** - Bug reports and feature requests  
-- 💡 **[Textual Discord](https://discord.gg/Enf6Z3qhVr)** - Join the #testing channel
-- 📧 **Email**: team@testinator.dev
+- 🐛 **[Issues](https://github.com/testinator-dev/textual-snapshots/issues)** - Bug reports and feature requests
 
 ---
 
