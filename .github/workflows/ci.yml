@@ -28,6 +28,7 @@ jobs:
     
     - name: Install dependencies
       run: |
+        uv venv
         uv pip install -e ".[dev]"
         sudo apt-get update
         sudo apt-get install -y librsvg2-bin  # For PNG support
