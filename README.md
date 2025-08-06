@@ -102,78 +102,6 @@ textual-snapshot compare baseline.svg current.svg
 textual-snapshot compare baselines/ current/ --recursive --output-report report.json
 ```
 
-## Migration from pytest-textual-snapshot
-
-**Automated migration in 30 seconds:**
-
-```bash
-# Preview what will be migrated (dry run)
-textual-snapshot migrate --from pytest-textual-snapshot --dry-run
-
-# Migrate screenshots to textual-snapshots format
-textual-snapshot migrate --from pytest-textual-snapshot
-```
-
-### Why migrate?
-
-| Feature | pytest-textual-snapshot | textual-snapshots |
-|---------|------------------------|-------------------|
-| **Setup Complexity** | Manual fixture setup | Zero-config auto-discovery |
-| **CLI Tools** | None | 4 professional commands |
-| **Interaction Support** | Basic | Rich interaction sequences |
-| **Format Support** | SVG only | SVG + PNG + conversion |
-| **Migration Tools** | None | Automated migration CLI |
-| **Plugin System** | None | Extensible architecture |
-| **CI/CD Integration** | Manual scripting | Built-in batch processing |
-
-### Migration Process
-
-The migration tool:
-- ✅ Finds all pytest-textual-snapshot files automatically
-- ✅ Converts to textual-snapshots naming conventions  
-- ✅ Preserves original files (safe migration)
-- ✅ Shows detailed migration plan before execution
-
-#### Before: pytest-textual-snapshot
-```python
-import pytest
-from syrupy.extensions.image import SVGImageSnapshotExtension
-
-@pytest.mark.asyncio
-async def test_homepage_snapshot(snapshot):
-    app = MyApp()
-    async with app.run_test() as pilot:
-        assert snapshot(extension_class=SVGImageSnapshotExtension) == \
-               pilot.app.export_screenshot()
-```
-
-#### After: textual-snapshots
-```python
-import pytest
-from textual_snapshots import capture_app_screenshot
-
-@pytest.mark.asyncio
-async def test_homepage_snapshot():
-    result = await capture_app_screenshot(MyApp(), context="homepage")
-    assert result.success
-    assert result.screenshot_path.exists()
-```
-
-## Format Support
-
-```python
-from textual_snapshots import capture_app_screenshot, ScreenshotFormat
-
-# SVG (default) - Vector format, smaller files
-result = await capture_app_screenshot(MyApp(), output_format=ScreenshotFormat.SVG)
-
-# PNG - Raster format, broader tool support  
-result = await capture_app_screenshot(MyApp(), output_format=ScreenshotFormat.PNG)
-
-# Both formats
-result = await capture_app_screenshot(MyApp(), output_format=ScreenshotFormat.BOTH)
-```
-
 ## Plugin System
 
 Extend textual-snapshots with custom validation and workflows:
@@ -286,10 +214,6 @@ python dev.py check          # Run all quality checks
 # Option 2: Make (traditional)
 make install
 make check
-
-# Option 3: Just (modern)
-just install  
-just check
 ```
 
 ### Key Development Commands
@@ -314,12 +238,6 @@ python dev.py clean                    # Clean generated files
 python dev.py info                     # Show environment info
 python dev.py demo                     # Test CLI functionality
 ```
-
-### Why Multiple Command Runners?
-
-- **`python dev.py`**: Universal compatibility (Windows/macOS/Linux), rich output, detailed error handling
-- **`make`**: Industry standard, familiar to most developers, platform detection  
-- **`just`**: Modern syntax, better error messages, built-in cross-platform functions
 
 ## Examples
 
