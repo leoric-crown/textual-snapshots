@@ -1,0 +1,164 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "textual-snapshots"
+version = "0.1.0"
+description = "Professional visual testing for Textual applications - start simple, scale with confidence"
+readme = "README.md"
+license = "MIT"
+authors = [
+    {name = "Testinator Team", email = "team@testinator.dev"},
+]
+keywords = [
+    "textual",
+    "testing",
+    "visual-testing",
+    "screenshot",
+    "tui",
+    "terminal",
+    "regression-testing"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Terminals",
+    "Typing :: Typed",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "textual>=0.41.0",
+    "pydantic>=2.0.0",
+    "click>=8.0.0",
+    "rich>=13.0.0",
+    "pillow>=9.0.0", # For PNG conversion support
+    "playwright>=1.54.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+    "coverage>=7.0.0",
+]
+quality = [
+    "playwright>=1.40.0",  # High-quality browser-based SVG conversion
+    # Note: Also install browser with: playwright install chromium
+    # Fallback: rsvg-convert is a system package, install with: brew install librsvg
+]
+ai = [
+    "pydantic-ai>=0.0.7",  # Future AI integration
+]
+
+[project.urls]
+Homepage = "https://github.com/testinator-dev/textual-snapshots"
+Documentation = "https://textual-snapshots.readthedocs.io"
+Repository = "https://github.com/testinator-dev/textual-snapshots"
+Issues = "https://github.com/testinator-dev/textual-snapshots/issues"
+
+[project.scripts]
+textual-snapshot = "textual_snapshots.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/textual_snapshots"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "/README.md",
+]
+
+[tool.mypy]
+python_version = "3.9"
+mypy_path = "src"
+packages = ["textual_snapshots"]
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+# Optional: Relaxed rules for tests (uncomment to enable test checking)
+# [[tool.mypy.overrides]]
+# module = "tests.*"
+# disallow_untyped_defs = false
+# disallow_incomplete_defs = false
+# disallow_untyped_calls = false
+# warn_return_any = false
+
+[tool.ruff]
+target-version = "py39"
+src = ["src", "tests"]
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B008",  # do not perform function calls in argument defaults
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*" = ["B011"]  # assert False usage in tests
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "screenshot: marks tests that capture screenshots",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "tests/*",
+    "src/textual_snapshots/__init__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[dependency-groups]
+dev = [
+    "pytest-cov>=6.2.1",
+]

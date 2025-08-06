@@ -1,0 +1,39 @@
+.DS_Store
+
+.venv
+
+.env
+
+**/.pytest_cache/
+**/.ruff_cache/
+**/.mypy_cache
+
+*.egg-info/
+
+**/__pycache__/
+.coverage
+coverage.xml
+htmlcov/
+
+# Generated screenshots and test artifacts (may contain sensitive data)
+**/screenshots/
+**/snapshots/ 
+**/*.svg
+**/*.png
+**/examples/output/
+**/platform_refs/
+**/test_output/
+**/test_results/
+
+# Conversion outputs
+**/converted/
+**/converted_*/ 
+
+# Baseline and reference data
+**/baselines/
+**/custom_baselines/
+**/custom_platforms/
+**/reference_images/
+
+# CLI output directories
+**/textual-snapshot-*/

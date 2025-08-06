@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install UV
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    
+    - name: Install dependencies
+      run: |
+        uv sync --dev
+        sudo apt-get update
+        sudo apt-get install -y librsvg2-bin  # For PNG support
+    
+    - name: Run quality checks
+      run: |
+        uv run python dev.py check
+    
+    - name: Run tests with coverage
+      run: |
+        uv run python dev.py test --coverage
+    
+    - name: Upload coverage to Codecov
+      if: matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+
+  visual-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install -e .
+        sudo apt-get install -y librsvg2-bin
+    
+    - name: Run visual tests
+      run: |
+        python -c "
+import asyncio
+from textual_snapshots import capture_app_screenshot
+from textual.app import App
+
+class TestApp(App):
+    def compose(self):
+        from textual.widgets import Static
+        yield Static('Test App', id='test')
+
+async def test():
+    result = await capture_app_screenshot(TestApp(), context='ci_test')
+    print(f'✓ Visual test passed: {result.success}')
+    assert result.success
+
+asyncio.run(test())
+        "
+    
+    - name: Upload screenshots
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: screenshots
+        path: screenshots/
+        retention-days: 7
