@@ -3,6 +3,7 @@
 import asyncio
 import logging
 from pathlib import Path
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -97,18 +98,76 @@ class ChromiumConverter:
 
                 await page.set_content(html_content, wait_until="networkidle")
 
-                # Get SVG dimensions for precise cropping
+                # Get SVG dimensions from viewBox or width/height attributes
                 svg_element = await page.query_selector("svg")
                 if svg_element:
-                    bbox = await svg_element.bounding_box()
-                    if bbox and bbox["width"] > 0 and bbox["height"] > 0:
-                        # Take screenshot with exact SVG dimensions
-                        await page.screenshot(
-                            path=output_path, clip=bbox, type="png", full_page=False
-                        )
+                    # Try to get dimensions from SVG attributes
+                    svg_width_attr = await svg_element.get_attribute("width")
+                    svg_height_attr = await svg_element.get_attribute("height")
+                    viewbox = await svg_element.get_attribute("viewBox")
+
+                    svg_width: Optional[float] = None
+                    svg_height: Optional[float] = None
+
+                    # Parse viewBox if available (format: "x y width height")
+                    if viewbox:
+                        try:
+                            _, _, vb_width, vb_height = viewbox.split()
+                            svg_width = float(vb_width)
+                            svg_height = float(vb_height)
+                        except (ValueError, AttributeError):
+                            pass
+
+                    # Use dimensions from viewBox if available, otherwise from attributes
+                    if svg_width is not None and svg_height is not None:
+                        try:
+                            # Set viewport to match SVG dimensions
+                            await page.set_viewport_size({"width": int(svg_width), "height": int(svg_height)})
+
+                            # Take full page screenshot (which now matches SVG size)
+                            await page.screenshot(path=output_path, type="png", full_page=True)
+                        except (ValueError, TypeError):
+                            # Fallback to element bounding box
+                            bbox = await svg_element.bounding_box()
+                            if bbox and bbox["width"] > 0 and bbox["height"] > 0:
+                                await page.screenshot(
+                                    path=output_path,
+                                    type="png",
+                                    clip={
+                                        "x": bbox["x"],
+                                        "y": bbox["y"],
+                                        "width": bbox["width"],
+                                        "height": bbox["height"],
+                                    },
+                                )
+                    elif svg_width_attr and svg_height_attr:
+                        try:
+                            width = float(svg_width_attr)
+                            height = float(svg_height_attr)
+
+                            # Set viewport to match SVG dimensions
+                            await page.set_viewport_size({"width": int(width), "height": int(height)})
+
+                            # Take full page screenshot (which now matches SVG size)
+                            await page.screenshot(path=output_path, type="png", full_page=True)
+                        except (ValueError, TypeError):
+                            # Fallback to element bounding box
+                            bbox = await svg_element.bounding_box()
+                            if bbox and bbox["width"] > 0 and bbox["height"] > 0:
+                                await page.screenshot(
+                                    path=output_path, clip=bbox, type="png", full_page=False
+                                )
+                            else:
+                                await page.screenshot(path=output_path, type="png", full_page=True)
                     else:
-                        # Fallback: get viewport size
-                        await page.screenshot(path=output_path, type="png", full_page=False)
+                        # Fallback to element bounding box
+                        bbox = await svg_element.bounding_box()
+                        if bbox and bbox["width"] > 0 and bbox["height"] > 0:
+                            await page.screenshot(
+                                path=output_path, clip=bbox, type="png", full_page=False
+                            )
+                        else:
+                            await page.screenshot(path=output_path, type="png", full_page=True)
                 else:
                     # Final fallback: full page screenshot
                     await page.screenshot(path=output_path, type="png", full_page=True)
@@ -177,5 +236,5 @@ def get_fallback_conversion_message() -> str:
         "High-quality browser conversion not available. Install with:\n"
         "  pip install playwright\n"
         "  playwright install chromium\n\n"
-        "Falling back to librsvg if available..."
+        "Browser-based conversion is recommended for best quality."
     )

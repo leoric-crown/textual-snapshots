@@ -12,7 +12,7 @@
 **Drop-in replacement for pytest-textual-snapshot with professional features:**
 
 - ✅ **5-minute setup** - From install to working screenshot
-- ✅ **Rich interaction capture** - Clicks, keys, complex user workflows  
+- ✅ **Rich interaction capture** - Clicks, keys, complex user workflows
 - ✅ **Professional CLI tools** - Auto-discovery, batch processing, migration
 - ✅ **Plugin architecture** - Extensible for custom validation and workflows
 - ✅ **CI/CD ready** - GitHub Actions, comparison reports, regression detection
@@ -25,9 +25,9 @@
 ```bash
 pip install textual-snapshots
 
-# For PNG conversion support (optional)
-brew install librsvg  # macOS
-# or apt-get install librsvg2-bin  # Linux
+# For PNG format support (optional):
+pip install playwright
+playwright install chromium
 ```
 
 ### 2. First Screenshot
@@ -67,7 +67,7 @@ async def test_login_workflow():
         context="login_flow",
         interactions=[
             "click:#username",
-            "type:testuser@example.com", 
+            "type:testuser@example.com",
             "press:tab",
             "type:password123",
             "click:#login-btn",
@@ -132,24 +132,23 @@ jobs:
   visual-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Install dependencies
-      run: |
-        pip install textual-snapshots pytest-asyncio
-        sudo apt-get install librsvg2-bin  # For PNG support
-    
-    - name: Run visual tests
-      run: |
-        pytest tests/ -m screenshot
-        
-    - name: Compare with baselines
-      run: |
-        textual-snapshot compare baselines/ screenshots/ --fail-on-diff
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install textual-snapshots pytest-asyncio
+
+      - name: Run visual tests
+        run: |
+          pytest tests/ -m screenshot
+
+      - name: Compare with baselines
+        run: |
+          textual-snapshot compare baselines/ screenshots/ --fail-on-diff
 ```
 
 ### Advanced CI/CD Features
@@ -158,41 +157,24 @@ jobs:
 # Advanced workflow with matrix testing and reporting
 strategy:
   matrix:
-    python-version: ['3.9', '3.10', '3.11', '3.12']
-    test-suite: ['core', 'integration', 'e2e']
+    python-version: ["3.9", "3.10", "3.11", "3.12"]
+    test-suite: ["core", "integration", "e2e"]
 
 steps:
-- name: Run visual tests with reporting
-  run: |
-    pytest tests/${{ matrix.test-suite }}/ -m screenshot -v
-    textual-snapshot compare baselines/ screenshots/ --output-report visual-report.json
+  - name: Run visual tests with reporting
+    run: |
+      pytest tests/${{ matrix.test-suite }}/ -m screenshot -v
+      textual-snapshot compare baselines/ screenshots/ --output-report visual-report.json
 
-- name: Upload screenshots on failure
-  uses: actions/upload-artifact@v4
-  if: failure()
-  with:
-    name: failed-screenshots-${{ matrix.python-version }}-${{ matrix.test-suite }}
-    path: |
-      screenshots/
-      visual-report.json
-    retention-days: 30
-```
-
-### Multiple Platform Support
-
-```yaml
-strategy:
-  matrix:
-    os: [ubuntu-latest, macos-latest, windows-latest]
-
-steps:
-- name: Install dependencies (Ubuntu)
-  if: runner.os == 'Linux'
-  run: sudo apt-get install -y librsvg2-bin
-
-- name: Install dependencies (macOS)
-  if: runner.os == 'macOS'  
-  run: brew install librsvg
+  - name: Upload screenshots on failure
+    uses: actions/upload-artifact@v4
+    if: failure()
+    with:
+      name: failed-screenshots-${{ matrix.python-version }}-${{ matrix.test-suite }}
+      path: |
+        screenshots/
+        visual-report.json
+      retention-days: 30
 ```
 
 ## Development & Contributing
@@ -221,7 +203,7 @@ make check
 ```bash
 # Quality Checks
 python dev.py check                    # Basic: lint + typecheck + test
-python dev.py check --strict           # Strict: includes strict type checking  
+python dev.py check --strict           # Strict: includes strict type checking
 python dev.py check --full             # Full: format + lint + typecheck + coverage
 
 # Testing & Coverage
@@ -233,34 +215,16 @@ python dev.py format                   # Format code
 python dev.py lint                     # Linting only
 python dev.py typecheck --strict       # Type checking
 
-# Utilities  
+# Utilities
 python dev.py clean                    # Clean generated files
 python dev.py info                     # Show environment info
 python dev.py demo                     # Test CLI functionality
 ```
 
-## Examples
-
-Explore real-world usage patterns:
-
-```bash
-git clone https://github.com/testinator-dev/textual-snapshots
-cd textual-snapshots/examples/
-
-# Basic screenshot examples
-python basic_capture.py
-
-# Advanced interaction examples  
-python interaction_workflows.py
-
-# Plugin system examples
-python custom_plugins.py
-```
-
-## Complete Documentation
+## Documentation
 
 - 📚 **[Getting Started Guide](GETTING_STARTED.md)** - Detailed installation, first steps, and development setup
-- 🔧 **[API Reference](API_REFERENCE.md)** - Complete Python API and CLI documentation  
+- 🔧 **[API Reference](API_REFERENCE.md)** - Complete Python API and CLI documentation
 - 🔒 **[Security Guidelines](SECURITY.md)** - Data privacy and screenshot security best practices
 
 ## Community & Support
@@ -272,4 +236,4 @@ python custom_plugins.py
 
 **Built with ❤️ for the [Textual](https://textual.textualize.io/) community**
 
-*Professional visual testing that grows with your application - from simple screenshots to enterprise CI/CD workflows.*
+_Professional visual testing that grows with your application - from simple screenshots to enterprise CI/CD workflows._

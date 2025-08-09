@@ -103,7 +103,7 @@ class TestConversionFunctions:
         assert isinstance(message, str)
         assert "playwright" in message.lower()
         assert "chromium" in message.lower()
-        assert "librsvg" in message.lower()
+        assert "browser" in message.lower()
 
     @pytest.mark.asyncio
     async def test_convert_svg_to_png_async(self) -> None:

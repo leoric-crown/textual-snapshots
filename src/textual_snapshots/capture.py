@@ -31,6 +31,16 @@ logger = logging.getLogger(__name__)
 CACHE_TTL_SECONDS = 3600  # 1 hour cache TTL
 
 
+def _get_app_name(app_source: Union[type[App[Any]], App[Any]]) -> str:
+    """Get the proper app name, handling both classes and instances."""
+    if isinstance(app_source, type):
+        # For classes, use __name__ directly
+        return app_source.__name__
+    else:
+        # For instances, get the class name
+        return app_source.__class__.__name__
+
+
 class ScreenshotFormat(str, Enum):
     """Available screenshot capture formats."""
 
@@ -389,7 +399,10 @@ class ScreenshotCapture:
             # Get app instance and capture screenshot
             app = app_context.get_app_instance()
 
-            async with app.run_test() as pilot:
+            # Get terminal size from app context metadata if available
+            terminal_size = app_context.get_metadata().get("terminal_size")
+
+            async with app.run_test(size=terminal_size) as pilot:
                 # Let UI render fully (preserved from original)
                 await asyncio.sleep(0.3)
 
@@ -419,17 +432,64 @@ class ScreenshotCapture:
             self._update_cache(content_hash, screenshot_path)
 
             file_size = screenshot_path.stat().st_size
+            svg_path: Optional[Path] = screenshot_path
+            png_path = None
+            png_size = 0
+            primary_path = screenshot_path
+
+            # Handle format conversion if needed
+            if output_format in [ScreenshotFormat.PNG, ScreenshotFormat.BOTH]:
+                try:
+                    from .conversion import convert_svg_to_png_async
+
+                    # Convert SVG to PNG
+                    png_output_dir = screenshot_path.parent
+                    png_path = await convert_svg_to_png_async(screenshot_path, png_output_dir, "high")
+                    png_size = png_path.stat().st_size if png_path.exists() else 0
+
+                    # For PNG-only format, make PNG the primary file and clean up SVG
+                    if output_format == ScreenshotFormat.PNG:
+                        primary_path = png_path
+                        file_size = png_size
+
+                        # Clean up intermediate SVG file for PNG-only requests
+                        try:
+                            if svg_path and svg_path.exists():
+                                svg_path.unlink()
+                                logger.debug(f"Cleaned up intermediate SVG file: {svg_path}")
+                                svg_path = None  # Clear the path since file is deleted
+                        except Exception as cleanup_error:
+                            logger.warning(f"Failed to clean up intermediate SVG file: {cleanup_error}")
+                            # Don't fail the capture for cleanup issues
+
+                except Exception as e:
+                    logger.warning(f"PNG conversion failed: {e}")
+                    # If PNG conversion fails but was requested, return error for PNG-only format
+                    if output_format == ScreenshotFormat.PNG:
+                        error_msg = f"PNG conversion failed: {str(e)}"
+                        await self._execute_failure_hooks(Exception(error_msg), context)
+                        return CaptureResult(
+                            success=False,
+                            screenshot_path=None,
+                            svg_path=None,
+                            png_path=None,
+                            context=context,
+                            app_context=app_context,
+                            error_message=error_msg,
+                            ai_metadata=None,
+                        )
 
             result = CaptureResult(
                 success=True,
-                screenshot_path=screenshot_path,
-                svg_path=screenshot_path,
-                png_path=None,
+                screenshot_path=primary_path,
+                svg_path=svg_path,  # Will be None if cleaned up for PNG-only
+                png_path=png_path,
                 format=output_format,
                 context=context,
                 app_context=app_context,
                 file_size_bytes=file_size,
-                svg_size_bytes=file_size,
+                svg_size_bytes=svg_path.stat().st_size if svg_path and svg_path.exists() else 0,
+                png_size_bytes=png_size,
                 error_message=None,
                 ai_metadata=None,
             )
@@ -515,6 +575,7 @@ async def capture_app_screenshot(
     output_format: ScreenshotFormat = ScreenshotFormat.SVG,
     interactions: Optional[list[str]] = None,
     metadata: Optional[dict[str, Any]] = None,
+    plugins: Optional[list["CapturePlugin"]] = None,
 ) -> CaptureResult:
     """
     Convenient function for capturing screenshots of Textual applications.
@@ -525,17 +586,18 @@ async def capture_app_screenshot(
         output_format: Output format (SVG, PNG, or BOTH)
         interactions: Optional interaction sequence to perform
         metadata: Optional metadata for context
+        plugins: Optional list of plugins to use during capture
 
     Returns:
         CaptureResult: Result of capture operation
     """
     app_context = BasicAppContext(
         app_source=app_source,
-        name=app_source.__class__.__name__ if hasattr(app_source, "__class__") else str(app_source),
+        name=_get_app_name(app_source),
         metadata=metadata,
     )
 
-    capture = ScreenshotCapture()
+    capture = ScreenshotCapture(plugins=plugins)
     return await capture.capture_app_screenshot(
         app_context=app_context,
         context=context,

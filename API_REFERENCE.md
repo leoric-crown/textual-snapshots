@@ -33,6 +33,7 @@ print(f"Screenshot: {result.screenshot_path}")
 **Main function for capturing screenshots of Textual applications.**
 
 #### Signature
+
 ```python
 async def capture_app_screenshot(
     app_source: Type[App] | App,
@@ -46,7 +47,9 @@ async def capture_app_screenshot(
 #### Parameters
 
 ##### `app_source: Type[App] | App`
+
 The Textual application to capture. Can be:
+
 - **App class**: `MyApp` (will be instantiated)
 - **App instance**: `MyApp()` (used directly)
 
@@ -60,6 +63,7 @@ result = await capture_app_screenshot(app, context="configured")
 ```
 
 ##### `context: str = "capture"`
+
 Context name for the screenshot, used in filename generation.
 
 - **Default**: `"capture"`
@@ -70,14 +74,16 @@ Context name for the screenshot, used in filename generation.
 # Creates: homepage_20250805_143021.svg
 result = await capture_app_screenshot(MyApp, context="homepage")
 
-# Creates: user_dashboard_20250805_143045.svg  
+# Creates: user_dashboard_20250805_143045.svg
 result = await capture_app_screenshot(MyApp, context="user_dashboard")
 ```
 
 ##### `interactions: Optional[list[str]] = None`
+
 User interaction sequence to perform before capturing screenshot.
 
 **Supported commands:**
+
 - `"click:SELECTOR"` - Click element by CSS selector
 - `"type:TEXT"` - Type text into focused element
 - `"press:KEY"` - Press keyboard key
@@ -108,6 +114,7 @@ result = await capture_app_screenshot(
 ```
 
 ##### `output_format: ScreenshotFormat = ScreenshotFormat.SVG`
+
 Screenshot output format.
 
 ```python
@@ -116,7 +123,7 @@ from textual_snapshots import ScreenshotFormat
 # SVG (default) - Vector format, smaller files
 result = await capture_app_screenshot(MyApp, output_format=ScreenshotFormat.SVG)
 
-# PNG - Raster format (requires rsvg-convert)
+# PNG - Raster format (requires Playwright)
 result = await capture_app_screenshot(MyApp, output_format=ScreenshotFormat.PNG)
 
 # Both formats
@@ -124,6 +131,7 @@ result = await capture_app_screenshot(MyApp, output_format=ScreenshotFormat.BOTH
 ```
 
 ##### `output_dir: Optional[Path] = None`
+
 Output directory for screenshots.
 
 - **Default**: `./screenshots/`
@@ -150,7 +158,7 @@ result = await capture_app_screenshot(
 result = await capture_app_screenshot(MyApp, context="test")
 
 print(result.success)           # bool: True if capture succeeded
-print(result.screenshot_path)   # Path: Full path to screenshot file  
+print(result.screenshot_path)   # Path: Full path to screenshot file
 print(result.file_size_bytes)   # int: File size in bytes
 print(result.format)           # ScreenshotFormat: SVG, PNG, or BOTH
 print(result.timestamp)        # datetime: UTC timestamp of capture
@@ -160,6 +168,7 @@ print(result.context)          # str: Context name used
 #### Examples
 
 ##### Basic Usage
+
 ```python
 import asyncio
 from textual_snapshots import capture_app_screenshot
@@ -175,6 +184,7 @@ asyncio.run(test_basic_screenshot())
 ```
 
 ##### With Interactions
+
 ```python
 async def test_user_workflow():
     result = await capture_app_screenshot(
@@ -184,7 +194,7 @@ async def test_user_workflow():
             "click:#register-tab",
             "click:#email-input",
             "type:newuser@example.com",
-            "click:#password-input", 
+            "click:#password-input",
             "type:securepassword123",
             "click:#confirm-password",
             "type:securepassword123",
@@ -198,6 +208,7 @@ async def test_user_workflow():
 ```
 
 ##### Error Handling
+
 ```python
 async def test_with_error_handling():
     try:
@@ -219,6 +230,7 @@ async def test_with_error_handling():
 **Advanced screenshot capture class with plugin support and configuration options.**
 
 #### Class Definition
+
 ```python
 class ScreenshotCapture:
     def __init__(
@@ -232,6 +244,7 @@ class ScreenshotCapture:
 #### Parameters
 
 ##### `plugins: Optional[list[CapturePlugin]] = None`
+
 List of capture plugins for custom processing.
 
 ```python
@@ -241,7 +254,7 @@ from textual_snapshots.plugins import CapturePlugin
 class LoggingPlugin(CapturePlugin):
     async def pre_capture(self, app_source, metadata):
         print(f"Starting capture: {metadata.context}")
-    
+
     async def post_capture(self, result, metadata):
         print(f"Completed: {result.screenshot_path}")
 
@@ -250,6 +263,7 @@ capture = ScreenshotCapture(plugins=[LoggingPlugin()])
 ```
 
 ##### `output_dir: Optional[Path] = None`
+
 Default output directory for all captures.
 
 ```python
@@ -260,6 +274,7 @@ capture = ScreenshotCapture(output_dir=Path("./visual-tests/"))
 ```
 
 ##### `default_format: ScreenshotFormat = ScreenshotFormat.SVG`
+
 Default format for all captures (can be overridden per capture).
 
 ```python
@@ -270,6 +285,7 @@ capture = ScreenshotCapture(default_format=ScreenshotFormat.PNG)
 #### Methods
 
 ##### `async capture_app_screenshot()`
+
 Same signature as standalone function, but uses instance configuration.
 
 ```python
@@ -293,6 +309,7 @@ result = await capture.capture_app_screenshot(
 #### Examples
 
 ##### Custom Validation Plugin
+
 ```python
 from textual_snapshots import ScreenshotCapture
 from textual_snapshots.plugins import CapturePlugin
@@ -302,19 +319,19 @@ class SizeValidationPlugin(CapturePlugin):
         max_size = 1024 * 1024  # 1MB
         if result.file_size_bytes > max_size:
             print(f"Warning: Large screenshot {result.file_size_bytes:,} bytes")
-        
-        # Validate screenshot has content  
+
+        # Validate screenshot has content
         if result.file_size_bytes < 1000:  # Less than 1KB
             raise ValueError("Screenshot appears to be empty")
 
 class TimingPlugin(CapturePlugin):
     def __init__(self):
         self.start_time = None
-    
+
     async def pre_capture(self, app_source, metadata):
         import time
         self.start_time = time.time()
-    
+
     async def post_capture(self, result, metadata):
         import time
         duration = time.time() - self.start_time
@@ -338,6 +355,7 @@ result = await capture.capture_app_screenshot(MyApp, context="validated")
 #### Attributes
 
 ##### `success: bool`
+
 Whether the capture operation succeeded.
 
 ```python
@@ -349,6 +367,7 @@ else:
 ```
 
 ##### `screenshot_path: Path`
+
 Full path to the captured screenshot file.
 
 ```python
@@ -362,6 +381,7 @@ subprocess.run(["open", str(result.screenshot_path)])
 ```
 
 ##### `file_size_bytes: int`
+
 Size of the screenshot file in bytes.
 
 ```python
@@ -377,6 +397,7 @@ elif result.file_size_bytes < 1000:  # 1KB
 ```
 
 ##### `format: ScreenshotFormat`
+
 Format of the captured screenshot.
 
 ```python
@@ -392,6 +413,7 @@ elif result.format == ScreenshotFormat.PNG:
 ```
 
 ##### `timestamp: datetime`
+
 UTC timestamp when the screenshot was captured.
 
 ```python
@@ -408,6 +430,7 @@ print(f"Screenshot age: {age.total_seconds():.1f} seconds")
 ```
 
 ##### `context: str`
+
 Context name used for the capture.
 
 ```python
@@ -419,6 +442,7 @@ report_name = f"test_report_{result.context}.html"
 ```
 
 ##### `error_message: Optional[str]`
+
 Error message if capture failed (None if successful).
 
 ```python
@@ -433,6 +457,7 @@ if not result.success:
 #### Methods
 
 ##### `matches_baseline(baseline_path: Path, tolerance: float = 0.95) -> bool`
+
 Compare captured screenshot with a baseline image.
 
 ```python
@@ -449,6 +474,7 @@ else:
 #### Examples
 
 ##### Complete Test with Result Validation
+
 ```python
 async def test_complete_workflow():
     # Capture screenshot
@@ -462,23 +488,23 @@ async def test_complete_workflow():
             "press:enter"
         ]
     )
-    
+
     # Validate result
     assert result.success, f"Capture failed: {result.error_message}"
     assert result.screenshot_path.exists(), "Screenshot file not found"
     assert result.file_size_bytes > 1000, "Screenshot appears empty"
     assert result.context == "complete_test", "Incorrect context"
-    
+
     # Additional validations
     age_seconds = (datetime.now(timezone.utc) - result.timestamp).total_seconds()
     assert age_seconds < 60, "Screenshot not fresh"
-    
+
     # Compare with baseline if exists
     baseline = Path(f"baselines/{result.context}_baseline.svg")
     if baseline.exists():
         assert result.matches_baseline(baseline, tolerance=0.95), \
                "Visual regression detected"
-    
+
     print(f"✓ All validations passed: {result.screenshot_path}")
     return result
 ```
@@ -492,16 +518,17 @@ async def test_complete_workflow():
 **Base class for creating custom capture plugins.**
 
 #### Base Class Definition
+
 ```python
 class CapturePlugin:
     async def pre_capture(self, app_source, metadata) -> None:
         """Called before screenshot capture."""
         pass
-    
+
     async def post_capture(self, result: CaptureResult, metadata) -> None:
         """Called after screenshot capture."""
         pass
-    
+
     async def on_error(self, error: Exception, metadata) -> None:
         """Called if capture fails."""
         pass
@@ -517,6 +544,7 @@ class CapturePlugin:
 #### Plugin Examples
 
 ##### Logging Plugin
+
 ```python
 import logging
 from textual_snapshots.plugins import CapturePlugin
@@ -524,22 +552,23 @@ from textual_snapshots.plugins import CapturePlugin
 class DetailedLoggingPlugin(CapturePlugin):
     def __init__(self, logger=None):
         self.logger = logger or logging.getLogger(__name__)
-    
+
     async def pre_capture(self, app_source, metadata):
         self.logger.info(f"Starting capture: {metadata.context}")
         self.logger.debug(f"App: {app_source}, Format: {metadata.format}")
-    
+
     async def post_capture(self, result, metadata):
         self.logger.info(
             f"Capture complete: {result.screenshot_path} "
             f"({result.file_size_bytes:,} bytes)"
         )
-    
+
     async def on_error(self, error, metadata):
         self.logger.error(f"Capture failed for {metadata.context}: {error}")
 ```
 
 ##### Quality Validation Plugin
+
 ```python
 from textual_snapshots.plugins import CapturePlugin
 
@@ -547,24 +576,24 @@ class QualityPlugin(CapturePlugin):
     def __init__(self, min_size_bytes=1000, max_size_bytes=10*1024*1024):
         self.min_size = min_size_bytes
         self.max_size = max_size_bytes
-    
+
     async def post_capture(self, result, metadata):
         size = result.file_size_bytes
-        
+
         if size < self.min_size:
             raise ValueError(
                 f"Screenshot too small ({size} bytes) - may be empty or corrupted"
             )
-        
+
         if size > self.max_size:
             raise ValueError(
                 f"Screenshot too large ({size:,} bytes) - may indicate rendering issue"
             )
-        
+
         # Validate file actually exists and is readable
         if not result.screenshot_path.exists():
             raise FileNotFoundError(f"Screenshot not found: {result.screenshot_path}")
-        
+
         # Additional SVG validation
         if result.format == ScreenshotFormat.SVG:
             content = result.screenshot_path.read_text()
@@ -573,6 +602,7 @@ class QualityPlugin(CapturePlugin):
 ```
 
 ##### Cleanup Plugin
+
 ```python
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -582,39 +612,40 @@ class CleanupPlugin(CapturePlugin):
     def __init__(self, max_age_days=30, max_files=1000):
         self.max_age = timedelta(days=max_age_days)
         self.max_files = max_files
-    
+
     async def post_capture(self, result, metadata):
         """Clean up old screenshots after each capture."""
         screenshots_dir = result.screenshot_path.parent
         await self._cleanup_old_files(screenshots_dir)
-    
+
     async def _cleanup_old_files(self, directory: Path):
         """Remove old screenshot files."""
         now = datetime.now()
         svg_files = list(directory.glob("*.svg"))
         png_files = list(directory.glob("*.png"))
         all_files = svg_files + png_files
-        
+
         # Remove files older than max_age
         for file_path in all_files:
             file_time = datetime.fromtimestamp(file_path.stat().st_mtime)
             if now - file_time > self.max_age:
                 file_path.unlink()
                 print(f"Cleaned up old screenshot: {file_path}")
-        
+
         # If still too many files, remove oldest
         remaining_files = [f for f in all_files if f.exists()]
         if len(remaining_files) > self.max_files:
             # Sort by modification time
             remaining_files.sort(key=lambda f: f.stat().st_mtime)
             files_to_remove = remaining_files[:-self.max_files]
-            
+
             for file_path in files_to_remove:
                 file_path.unlink()
                 print(f"Cleaned up excess screenshot: {file_path}")
 ```
 
 #### Using Multiple Plugins
+
 ```python
 from textual_snapshots import ScreenshotCapture
 
@@ -643,6 +674,7 @@ textual-snapshot [GLOBAL_OPTIONS] COMMAND [COMMAND_OPTIONS]
 ```
 
 #### Global Options
+
 - `--verbose, -v` - Verbose output with detailed information
 - `--quiet, -q` - Minimal output (only errors and results)
 - `--version` - Show version and exit
@@ -652,12 +684,12 @@ textual-snapshot [GLOBAL_OPTIONS] COMMAND [COMMAND_OPTIONS]
 
 ### Commands Overview
 
-| Command | Purpose | Quick Example |
-|---------|---------|---------------|
-| [`capture`](#capture) | Screenshot capture with auto-discovery | `textual-snapshot capture` |
-| [`compare`](#compare) | Visual regression testing | `textual-snapshot compare baseline.svg current.svg` |
-| [`migrate`](#migrate) | Migration from other frameworks | `textual-snapshot migrate --from pytest-textual-snapshot` |
-| [`convert`](#convert) | Format conversion (SVG ↔ PNG) | `textual-snapshot convert input.svg --to png` |
+| Command               | Purpose                                | Quick Example                                             |
+| --------------------- | -------------------------------------- | --------------------------------------------------------- |
+| [`capture`](#capture) | Screenshot capture with auto-discovery | `textual-snapshot capture`                                |
+| [`compare`](#compare) | Visual regression testing              | `textual-snapshot compare baseline.svg current.svg`       |
+| [`migrate`](#migrate) | Migration from other frameworks        | `textual-snapshot migrate --from pytest-textual-snapshot` |
+| [`convert`](#convert) | Format conversion (SVG ↔ PNG)          | `textual-snapshot convert input.svg --to png`             |
 
 ---
 
@@ -666,29 +698,35 @@ textual-snapshot [GLOBAL_OPTIONS] COMMAND [COMMAND_OPTIONS]
 Capture screenshots of Textual applications with intelligent auto-discovery.
 
 #### Usage
+
 ```bash
 textual-snapshot capture [APP_PATH] [OPTIONS]
 ```
 
 #### Arguments
+
 - `APP_PATH` - Path to Python file containing Textual app (optional, auto-discovered if omitted)
 
 #### Options
 
 ##### Basic Options
+
 - `--context, -c TEXT` - Context name for screenshot (default: "capture")
 - `--format, -f [svg|png|both]` - Output format (default: svg)
 - `--output-dir, -o PATH` - Output directory (default: screenshots/)
 
-##### Discovery Options  
+##### Discovery Options
+
 - `--interactive` - Interactive app selection when multiple apps found
 
 ##### Interaction Options
+
 - `--interactions, -i TEXT` - Comma-separated interaction sequence
 
 #### Examples
 
 ##### Basic Capture
+
 ```bash
 # Auto-discover and capture
 textual-snapshot capture
@@ -701,8 +739,9 @@ textual-snapshot capture --context "homepage_v2"
 ```
 
 ##### Format Options
+
 ```bash
-# PNG format (requires rsvg-convert)
+# PNG format (requires Playwright)
 textual-snapshot capture --format png
 
 # Both SVG and PNG
@@ -713,6 +752,7 @@ textual-snapshot capture --output-dir ./visual-tests/
 ```
 
 ##### Interactive Screenshots
+
 ```bash
 # Simple click
 textual-snapshot capture --interactions "click:#button"
@@ -725,6 +765,7 @@ textual-snapshot capture --interactions "click:#button,wait:2.0,press:enter"
 ```
 
 ##### Auto-Discovery
+
 ```bash
 # Interactive selection when multiple apps found
 textual-snapshot capture --interactive
@@ -737,14 +778,15 @@ textual-snapshot capture --verbose
 
 The `--interactions` option supports these commands:
 
-| Command | Description | Example |
-|---------|-------------|---------|
-| `click:SELECTOR` | Click element by CSS selector | `click:#button` |
-| `type:TEXT` | Type text | `type:hello world` |
-| `press:KEY` | Press keyboard key | `press:enter` |
-| `wait:SECONDS` | Wait for specified duration | `wait:1.5` |
+| Command          | Description                   | Example            |
+| ---------------- | ----------------------------- | ------------------ |
+| `click:SELECTOR` | Click element by CSS selector | `click:#button`    |
+| `type:TEXT`      | Type text                     | `type:hello world` |
+| `press:KEY`      | Press keyboard key            | `press:enter`      |
+| `wait:SECONDS`   | Wait for specified duration   | `wait:1.5`         |
 
 **Selector formats:**
+
 - `#id` - Element with ID
 - `.class` - Element with CSS class
 - `tag` - HTML/widget tag name
@@ -752,6 +794,7 @@ The `--interactions` option supports these commands:
 #### Output
 
 Successful capture displays:
+
 ```
 ✓ Screenshot captured successfully
 
@@ -768,15 +811,18 @@ Timestamp: 2025-08-05 14:30:21 UTC
 Compare screenshots for visual regression detection with detailed reporting.
 
 #### Usage
+
 ```bash
 textual-snapshot compare BASELINE CURRENT [OPTIONS]
 ```
 
 #### Arguments
+
 - `BASELINE` - Baseline screenshot file or directory
 - `CURRENT` - Current screenshot file or directory
 
 #### Options
+
 - `--threshold, -t FLOAT` - Similarity threshold 0.0-1.0 (default: 0.95)
 - `--recursive, -r` - Compare directories recursively
 - `--output-report PATH` - Save detailed JSON report
@@ -784,6 +830,7 @@ textual-snapshot compare BASELINE CURRENT [OPTIONS]
 #### Examples
 
 ##### Single File Comparison
+
 ```bash
 # Basic comparison
 textual-snapshot compare baseline.svg current.svg
@@ -796,6 +843,7 @@ textual-snapshot compare baseline.svg current.svg --threshold 0.85
 ```
 
 ##### Directory Comparison
+
 ```bash
 # Compare all files in directories
 textual-snapshot compare baselines/ current/
@@ -810,6 +858,7 @@ textual-snapshot compare baselines/ current/ --output-report report.json
 #### Output
 
 ##### Comparison Results Table
+
 ```
 Comparison Results
 ┌─────────────────────────┬────────────┬────────┬─────────────────────┐
@@ -824,6 +873,7 @@ Comparison Results
 ```
 
 ##### JSON Report Format
+
 ```json
 {
   "threshold": 0.95,
@@ -835,7 +885,7 @@ Comparison Results
   "results": [
     {
       "baseline": "baselines/homepage.svg",
-      "current": "current/homepage.svg", 
+      "current": "current/homepage.svg",
       "similarity": 0.982,
       "passed": true
     }
@@ -844,6 +894,7 @@ Comparison Results
 ```
 
 #### Exit Codes
+
 - `0` - All comparisons passed
 - `1` - One or more comparisons failed or error occurred
 
@@ -854,11 +905,13 @@ Comparison Results
 Migrate screenshots from other testing frameworks with automated discovery and conversion.
 
 #### Usage
+
 ```bash
 textual-snapshot migrate [OPTIONS]
 ```
 
 #### Options
+
 - `--from [pytest-textual-snapshot]` - Source format (default: pytest-textual-snapshot)
 - `--dry-run` - Preview migration without making changes
 - `--source-dir PATH` - Source directory (default: current directory)
@@ -866,6 +919,7 @@ textual-snapshot migrate [OPTIONS]
 #### Examples
 
 ##### Basic Migration
+
 ```bash
 # Migrate from pytest-textual-snapshot
 textual-snapshot migrate --from pytest-textual-snapshot
@@ -888,6 +942,7 @@ textual-snapshot migrate --source-dir ./old-tests/
 #### Output
 
 ##### Migration Plan Preview
+
 ```
 Migration Plan (DRY RUN)
 ┌─────────────────────────────────┬─────────────────────────────────┬─────────────┐
@@ -901,8 +956,9 @@ DRY RUN: Would migrate 2 files
 ```
 
 #### Migration Features
+
 - ✅ **Safe**: Original files preserved
-- ✅ **Automatic**: Finds pytest-textual-snapshot files automatically  
+- ✅ **Automatic**: Finds pytest-textual-snapshot files automatically
 - ✅ **Preview**: Dry-run mode shows exact changes
 - ✅ **Timestamped**: New files get unique timestamps
 - ✅ **Organized**: All migrated files go to `screenshots/` directory
@@ -914,17 +970,21 @@ DRY RUN: Would migrate 2 files
 Convert screenshots between SVG and PNG formats with quality control.
 
 #### Usage
+
 ```bash
 textual-snapshot convert INPUT_PATH --to FORMAT [OPTIONS]
 ```
 
 #### Arguments
+
 - `INPUT_PATH` - Input file or directory
 
 #### Required Options
+
 - `--to [png|svg]` - Target format for conversion
 
 #### Options
+
 - `--quality [low|medium|high]` - Quality for PNG output (default: high)
 - `--output-dir, -o PATH` - Output directory (default: converted/)
 - `--batch` - Process multiple files (required for directory input)
@@ -932,11 +992,12 @@ textual-snapshot convert INPUT_PATH --to FORMAT [OPTIONS]
 #### Examples
 
 ##### Single File Conversion
+
 ```bash
 # SVG to PNG
 textual-snapshot convert screenshot.svg --to png
 
-# PNG to SVG  
+# PNG to SVG
 textual-snapshot convert screenshot.png --to svg
 
 # High quality PNG
@@ -944,6 +1005,7 @@ textual-snapshot convert screenshot.svg --to png --quality high
 ```
 
 ##### Batch Conversion
+
 ```bash
 # Convert all SVG files to PNG
 textual-snapshot convert screenshots/ --to png --batch
@@ -957,24 +1019,27 @@ textual-snapshot convert screenshots/ --to png --batch --quality medium
 
 #### Quality Settings
 
-| Quality | DPI | Use Case |
-|---------|-----|----------|
-| `low` | 72 | Quick previews, small file sizes |
-| `medium` | 150 | Web display, balanced quality/size |
-| `high` | 300 | Print quality, archival |
+| Quality  | DPI | Scale | Use Case                           |
+| -------- | --- | ----- | ---------------------------------- |
+| `low`    | 96  | 1.0x  | Quick previews, small file sizes   |
+| `medium` | 144 | 1.5x  | Web display, balanced quality/size |
+| `high`   | 192 | 2.0x  | High resolution, detailed captures |
 
 #### Requirements
 
 ##### SVG to PNG
-- **System requirement**: `rsvg-convert` must be installed
-- **macOS**: `brew install librsvg`
-- **Ubuntu/Debian**: `sudo apt-get install librsvg2-bin`
+
+- **Requires**: Playwright and Chromium browser
+- **Install**: `pip install playwright && playwright install chromium`
+- **High-quality**: Browser-based rendering for perfect conversion
 
 ##### PNG to SVG
+
 - **No additional requirements** (uses Python Pillow)
 - **Note**: Creates SVG wrapper around embedded PNG data
 
 #### Output
+
 ```
 ✓ Conversion completed successfully
 Converted 5 files to /path/to/converted/
@@ -987,16 +1052,18 @@ Converted 5 files to /path/to/converted/
 ### Enums and Types
 
 #### `ScreenshotFormat`
+
 ```python
 from enum import Enum
 
 class ScreenshotFormat(Enum):
     SVG = "svg"   # Vector format, smaller files, scalable
-    PNG = "png"   # Raster format, broader tool support  
+    PNG = "png"   # Raster format, broader tool support
     BOTH = "both" # Generate both SVG and PNG
 ```
 
 #### `AppContext`
+
 ```python
 from typing import Protocol
 
@@ -1011,21 +1078,22 @@ class AppContext(Protocol):
 ### Type Hints and Imports
 
 #### Complete Import Example
+
 ```python
 from textual_snapshots import (
     # Main functions
     capture_app_screenshot,
-    
+
     # Classes
     ScreenshotCapture,
     CaptureResult,
-    
+
     # Enums
     ScreenshotFormat,
-    
+
     # Plugin system
     CapturePlugin,
-    
+
     # Type hints
     AppContext,
 )
@@ -1036,6 +1104,7 @@ from typing import Optional, Type
 ```
 
 #### Type Annotations Example
+
 ```python
 from textual_snapshots import capture_app_screenshot, CaptureResult, ScreenshotFormat
 from textual.app import App
@@ -1062,6 +1131,7 @@ async def capture_with_types(
 ## Error Handling
 
 ### Common Exceptions
+
 ```python
 from textual_snapshots import capture_app_screenshot
 
@@ -1080,31 +1150,33 @@ except Exception as e:
 ```
 
 ### Robust Error Handling Pattern
+
 ```python
 async def robust_capture(app_class, context, max_retries=3):
     """Capture with retry logic and comprehensive error handling."""
-    
+
     for attempt in range(max_retries):
         try:
             result = await capture_app_screenshot(app_class, context=context)
-            
+
             if result.success:
                 return result
             else:
                 print(f"Attempt {attempt + 1} failed: {result.error_message}")
-                
+
         except Exception as e:
             print(f"Attempt {attempt + 1} exception: {e}")
-            
+
         if attempt < max_retries - 1:
             await asyncio.sleep(1.0)  # Wait before retry
-    
+
     raise RuntimeError(f"Failed to capture screenshot after {max_retries} attempts")
 ```
 
 ## CLI Error Handling
 
 ### Common Exit Codes
+
 - `0` - Success
 - `1` - Command failed or user error
 - `2` - Invalid command usage
@@ -1112,20 +1184,24 @@ async def robust_capture(app_class, context, max_retries=3):
 ### Common Errors
 
 #### "No Textual applications found"
+
 - **Cause**: No Textual apps in current directory
 - **Solution**: Specify app file directly or use `--interactive`
 
-#### "rsvg-convert not found"
-- **Cause**: PNG conversion tool not installed
-- **Solution**: Install librsvg system package
+#### "Format conversion not available"
+
+- **Cause**: Unsupported format conversion requested
+- **Solution**: Use SVG format (recommended) or check available formats
 
 #### "Permission denied"
+
 - **Cause**: Cannot write to output directory
 - **Solution**: Check directory permissions or use `--output-dir`
 
 ### Verbose Mode
 
 Use `--verbose` for detailed troubleshooting information:
+
 ```bash
 textual-snapshot capture --verbose
 # Shows app discovery process, file operations, timing
@@ -1134,6 +1210,7 @@ textual-snapshot capture --verbose
 ### Quiet Mode
 
 Use `--quiet` for minimal output (CI/CD friendly):
+
 ```bash
 textual-snapshot capture --quiet
 # Only shows errors and final results
@@ -1144,15 +1221,17 @@ textual-snapshot capture --quiet
 ## Integration Examples
 
 ### GitHub Actions
+
 ```yaml
 - name: Capture screenshots
   run: textual-snapshot capture tests/apps/ --batch --quiet
 
-- name: Compare with baselines  
+- name: Compare with baselines
   run: textual-snapshot compare baselines/ screenshots/ --output-report results.json
 ```
 
 ### Makefile
+
 ```makefile
 screenshots:
 	textual-snapshot capture --context "automated_test"
@@ -1165,6 +1244,7 @@ migrate:
 ```
 
 ### Shell Scripts
+
 ```bash
 #!/bin/bash
 # capture-all.sh
@@ -1172,7 +1252,7 @@ set -e
 
 echo "Capturing all app screenshots..."
 textual-snapshot capture app1.py --context "app1_main"
-textual-snapshot capture app2.py --context "app2_main" 
+textual-snapshot capture app2.py --context "app2_main"
 textual-snapshot capture app3.py --context "app3_main"
 
 echo "Converting to PNG for web display..."

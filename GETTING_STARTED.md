@@ -20,26 +20,14 @@ textual-snapshot --version
 
 ### Installation Options
 
-#### Basic Installation
+#### Standard Installation
 ```bash
-# Core package with SVG support
-pip install textual-snapshots
-```
-
-#### With PNG Support
-```bash
-# Install textual-snapshots
+# Install textual-snapshots (SVG support included)
 pip install textual-snapshots
 
-# Install PNG conversion dependencies
-# macOS:
-brew install librsvg
-
-# Ubuntu/Debian:
-sudo apt-get install librsvg2-bin
-
-# Windows (WSL recommended):
-sudo apt-get install librsvg2-bin
+# For PNG format support (optional):
+pip install playwright
+playwright install chromium
 ```
 
 #### Development Installation
@@ -69,7 +57,6 @@ pytest tests/
 
 #### Optional Dependencies
 
-- **PNG Support**: `librsvg` (system package)
 - **Development**: `pytest`, `mypy`, `ruff`, `coverage`
 - **AI Integration**: `pydantic-ai` (future feature)
 
@@ -87,16 +74,13 @@ textual-snapshot --help
 textual-snapshot capture
 ```
 
-#### Test PNG Support (Optional)
+#### Test Core Functionality
 ```bash
-# Check if rsvg-convert is available
-which rsvg-convert
+# Test basic screenshot capture
+textual-snapshot --help
 
-# If available, test conversion
-echo '<svg width="100" height="100"><rect width="100" height="100" fill="red"/></svg>' > test.svg
-rsvg-convert --format png --output test.png test.svg
-ls -la test.png  # Should show PNG file created
-rm test.svg test.png  # Cleanup
+# Verify installation is working
+python -c "import textual_snapshots; print('Installation successful')"
 ```
 
 ### Common Installation Issues
@@ -131,24 +115,17 @@ python -c "import textual; print(textual.__version__)"
 # Should be 0.41.0 or higher
 ```
 
-#### Issue: PNG conversion fails with "rsvg-convert not found"
+#### Issue: Screenshot format not supported
 
-**Cause**: SVG-to-PNG conversion tool not installed.
+**Cause**: Unsupported output format requested.
 
 **Solution**:
 ```bash
-# macOS
-brew install librsvg
+# Use SVG format (default)
+textual-snapshot capture --format svg
 
-# Ubuntu/Debian
-sudo apt-get update
-sudo apt-get install librsvg2-bin
-
-# Arch Linux
-sudo pacman -S librsvg
-
-# Windows
-# Use WSL and install via apt-get
+# Check available formats
+textual-snapshot capture --help
 ```
 
 #### Issue: Permission denied errors
@@ -273,10 +250,10 @@ open screenshots/capture_*.svg        # macOS
 xdg-open screenshots/capture_*.svg    # Linux
 ```
 
-#### Convert to PNG (if rsvg-convert installed)
+#### View Screenshot Files
 ```bash
-textual-snapshot convert screenshots/capture_*.svg --to png
-open converted/capture_*.png          # macOS
+# SVG files can be opened directly in browsers
+ls -la screenshots/capture_*.svg
 ```
 
 #### Terminal Preview (Quick check)

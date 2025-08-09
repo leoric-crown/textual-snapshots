@@ -812,7 +812,7 @@ def run_convert(
 
 
 def convert_svg_to_png_with_fallback(svg_path: Path, output_dir: Path, quality: str) -> None:
-    """Convert SVG to PNG using high-quality browser conversion with librsvg fallback."""
+    """Convert SVG to PNG using high-quality browser conversion."""
     from .conversion import (
         check_browser_availability,
         convert_svg_to_png_sync,
@@ -827,53 +827,18 @@ def convert_svg_to_png_with_fallback(svg_path: Path, output_dir: Path, quality: 
             # Log browser conversion failure but don't fail completely
             import logging
 
-            logging.getLogger(__name__).warning(
-                f"Browser conversion failed, falling back to librsvg: {e}"
-            )
+            logging.getLogger(__name__).warning(f"Browser conversion failed: {e}")
 
-    # Fallback to original librsvg implementation
-    convert_svg_to_png_librsvg(svg_path, output_dir, quality)
+    # No fallback available - browser conversion is required
+    convert_svg_to_png_legacy(svg_path, output_dir, quality)
 
 
-def convert_svg_to_png_librsvg(svg_path: Path, output_dir: Path, quality: str) -> None:
-    """Convert SVG to PNG using rsvg-convert (legacy fallback)."""
-    import subprocess
-
-    output_path = output_dir / f"{svg_path.stem}.png"
-
-    # Quality settings for librsvg
-    dpi_map = {"low": 72, "medium": 150, "high": 300}
-    dpi = dpi_map[quality]
-
-    # Use rsvg-convert if available
-    try:
-        subprocess.run(
-            [
-                "rsvg-convert",
-                "--dpi-x",
-                str(dpi),
-                "--dpi-y",
-                str(dpi),
-                "--format",
-                "png",
-                "--output",
-                str(output_path),
-                str(svg_path),
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-    except FileNotFoundError:
-        from .conversion import get_fallback_conversion_message
-
-        raise CLIError(
-            get_fallback_conversion_message()
-            + "\n\n"
-            + "rsvg-convert not found. Install with: brew install librsvg (macOS) or apt-get install librsvg2-bin (Linux)"
-        ) from None
-    except subprocess.CalledProcessError as e:
-        raise CLIError(f"rsvg-convert failed: {e.stderr}") from e
+def convert_svg_to_png_legacy(svg_path: Path, output_dir: Path, quality: str) -> None:
+    """Legacy PNG conversion - no longer supported."""
+    raise CLIError(
+        "Legacy PNG conversion is no longer supported. "
+        "Please use browser-based conversion with playwright."
+    )
 
 
 def convert_png_to_svg(png_path: Path, output_dir: Path) -> None:

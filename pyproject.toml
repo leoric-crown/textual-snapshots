@@ -57,7 +57,6 @@ dev = [
 quality = [
     "playwright>=1.40.0",  # High-quality browser-based SVG conversion
     # Note: Also install browser with: playwright install chromium
-    # Fallback: rsvg-convert is a system package, install with: brew install librsvg
 ]
 ai = [
     "pydantic-ai>=0.0.7",  # Future AI integration

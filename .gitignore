@@ -2,6 +2,9 @@
 
 .venv
 
+CLAUDE.md
+GEMINI.md
+
 .env
 
 **/.pytest_cache/
