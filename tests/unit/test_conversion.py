@@ -224,16 +224,16 @@ class TestErrorHandling:
         try:
             converter = ChromiumConverter()
             output_path = Path("test_output.png")
-            
+
             # This should trigger the UnicodeDecodeError fallback
             if check_browser_availability():
                 try:
                     with tempfile.TemporaryDirectory() as temp_dir:
                         temp_output = Path(temp_dir) / "output.png"
                         # The fallback should work without throwing an exception
-                        result = await converter.convert_svg_to_png(svg_path, temp_output, "high")
+                        await converter.convert_svg_to_png(svg_path, temp_output, "high")
                         assert temp_output.exists()
-                except Exception as e:
+                except Exception:
                     # If it fails for other reasons (browser issues), that's expected
                     # The important thing is we tested the UnicodeDecodeError path
                     pass
@@ -253,7 +253,7 @@ class TestErrorHandling:
             result = check_browser_availability()
             assert result is False
 
-    @pytest.mark.asyncio 
+    @pytest.mark.asyncio
     async def test_playwright_import_error(self) -> None:
         """Test ImportError when playwright is not available - lines 57-58."""
         # Create a test SVG file
@@ -273,7 +273,7 @@ class TestErrorHandling:
             # Mock the playwright import to raise ImportError
             import sys
             from unittest.mock import patch
-            
+
             with patch.dict(sys.modules, {'playwright.async_api': None}):
                 with patch('builtins.__import__', side_effect=ImportError("Mocked import error")):
                     with pytest.raises(RuntimeError, match="Playwright not installed"):
@@ -303,7 +303,7 @@ class TestErrorHandling:
             converter = ChromiumConverter()
             # This should handle the viewBox parsing error gracefully
             try:
-                result = await converter.convert_svg_to_png(svg_path, output_path, "high")
+                await converter.convert_svg_to_png(svg_path, output_path, "high")
                 assert output_path.exists()
             except Exception as e:
                 # May fail for other browser reasons, but shouldn't crash on viewBox parsing
@@ -331,9 +331,9 @@ class TestErrorHandling:
             converter = ChromiumConverter()
             # This should use fallback screenshot methods
             try:
-                result = await converter.convert_svg_to_png(svg_path, output_path, "high")
+                await converter.convert_svg_to_png(svg_path, output_path, "high")
                 assert output_path.exists()
-            except Exception as e:
+            except Exception:
                 # Browser issues are okay, we're testing the dimension handling
                 pass
 
@@ -359,7 +359,7 @@ class TestErrorHandling:
             converter = ChromiumConverter()
             # Should handle viewport exceptions and fall back to element bounding box
             try:
-                result = await converter.convert_svg_to_png(svg_path, output_path, "high")
+                await converter.convert_svg_to_png(svg_path, output_path, "high")
                 # If it succeeds, great! If not, that's okay for this test
             except Exception:
                 # Expected for extreme dimensions
@@ -369,9 +369,9 @@ class TestErrorHandling:
     async def test_browser_automation_exception_handling(self) -> None:
         """Test general browser automation exception handling - lines 181-183."""
         converter = ChromiumConverter()
-        
+
         # Create a mock that will simulate browser automation failure
-        from unittest.mock import patch, AsyncMock
+        from unittest.mock import AsyncMock, patch
 
         with tempfile.NamedTemporaryFile(suffix=".svg", mode="w", delete=False) as f:
             f.write('<svg width="10" height="10"><rect width="10" height="10"/></svg>')
@@ -398,11 +398,11 @@ class TestErrorHandling:
         # This test is hard to mock properly due to complex playwright interactions
         # The line 186 check is covered indirectly by other tests that succeed
         # For now, let's just verify the error message structure would be correct
-        converter = ChromiumConverter()
-        
+        ChromiumConverter()
+
         # Test that the file existence check logic works
         non_existent_path = Path("/tmp/definitely_does_not_exist.png")
         assert not non_existent_path.exists()
-        
+
         # The actual line 186 check happens after successful browser automation
         # It's difficult to mock without complex playwright setup

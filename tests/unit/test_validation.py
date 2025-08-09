@@ -579,7 +579,7 @@ class TestValidationErrorHandling:
         original_method = validation_suite._compare_with_human_baselines
         async def failing_method(*args, **kwargs):
             raise RuntimeError("Test exception for coverage")
-        
+
         validation_suite._compare_with_human_baselines = failing_method
 
         # This should catch the exception and return error result
@@ -603,7 +603,7 @@ class TestValidationErrorHandling:
         # Create capture result with None screenshot path - now checked early
         capture_result = CaptureResult(
             success=True,
-            screenshot_path=None,  # This triggers the early None path check 
+            screenshot_path=None,  # This triggers the early None path check
             svg_path=None,
             format=ScreenshotFormat.SVG,
             file_size_bytes=0,
@@ -694,7 +694,7 @@ class TestValidationErrorHandling:
         # Verify it returns a hash string
         assert isinstance(result_hash, str)
         assert len(result_hash) > 0
-        
+
         # Verify it's consistent
         result_hash2 = validation_suite._calculate_file_hash(test_file)
         assert result_hash == result_hash2
