@@ -122,7 +122,9 @@ class ChromiumConverter:
                     if svg_width is not None and svg_height is not None:
                         try:
                             # Set viewport to match SVG dimensions
-                            await page.set_viewport_size({"width": int(svg_width), "height": int(svg_height)})
+                            await page.set_viewport_size(
+                                {"width": int(svg_width), "height": int(svg_height)}
+                            )
 
                             # Take full page screenshot (which now matches SVG size)
                             await page.screenshot(path=output_path, type="png", full_page=True)
@@ -146,7 +148,9 @@ class ChromiumConverter:
                             height = float(svg_height_attr)
 
                             # Set viewport to match SVG dimensions
-                            await page.set_viewport_size({"width": int(width), "height": int(height)})
+                            await page.set_viewport_size(
+                                {"width": int(width), "height": int(height)}
+                            )
 
                             # Take full page screenshot (which now matches SVG size)
                             await page.screenshot(path=output_path, type="png", full_page=True)

@@ -57,11 +57,11 @@ class PluginDemoApp(App):
         background: $primary;
         color: $text;
     }
-    
+
     Button {
         margin: 1;
     }
-    
+
     #status {
         background: $success;
         color: $text;

@@ -48,7 +48,7 @@ class DemoApp(App):
         background: $primary;
         color: $text;
     }
-    
+
     Button {
         margin: 1;
     }
@@ -74,7 +74,7 @@ async def main():
     # Quick environment check
     try:
         # Test that we can instantiate the app
-        test_app = DemoApp()
+        DemoApp()
         print("✅ Textual app creation successful")
     except Exception as e:
         print(f"❌ Failed to create Textual app: {e}")

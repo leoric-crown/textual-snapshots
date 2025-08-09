@@ -149,6 +149,17 @@ class ExternalValidationSuite:
         - Structural pattern matching (for SVG)
         - Statistical file analysis
         """
+        # Check screenshot path early to avoid unnecessary work
+        screenshot_path = screenshot.screenshot_path
+        if screenshot_path is None:
+            return ValidationResult(
+                is_valid=False,
+                confidence=0.0,
+                validation_type="human_baseline",
+                issues=["Screenshot path is None"],
+                metrics={},
+            )
+
         issues = []
         metrics = {}
 
@@ -168,15 +179,6 @@ class ExternalValidationSuite:
 
         # Analyze against each baseline
         similarity_scores = []
-        screenshot_path = screenshot.screenshot_path
-        if screenshot_path is None:
-            return ValidationResult(
-                is_valid=False,
-                confidence=0.0,
-                validation_type="human_baseline",
-                issues=["Screenshot path is None"],
-                metrics={},
-            )
 
         for baseline_file in baseline_files:
             similarity = calculate_file_similarity(screenshot_path, baseline_file)
@@ -221,6 +223,17 @@ class ExternalValidationSuite:
         Analyzes platform-specific rendering patterns and consistency
         using algorithmic methods without AI dependencies.
         """
+        # Check screenshot path early to avoid unnecessary work
+        screenshot_path = screenshot.screenshot_path
+        if screenshot_path is None:
+            return ValidationResult(
+                is_valid=False,
+                confidence=0.0,
+                validation_type="platform_consistency",
+                issues=["Screenshot path is None"],
+                metrics={},
+            )
+
         issues = []
         metrics: dict[str, Any] = {}
 
@@ -241,16 +254,6 @@ class ExternalValidationSuite:
         # Calculate consistency across platforms
         platform_similarities = []
         platform_names = []
-
-        screenshot_path = screenshot.screenshot_path
-        if screenshot_path is None:
-            return ValidationResult(
-                is_valid=False,
-                confidence=0.0,
-                validation_type="platform_consistency",
-                issues=["Screenshot path is None"],
-                metrics={},
-            )
 
         for ref_file in platform_refs:
             platform_name = extract_platform_from_filename(ref_file.name)

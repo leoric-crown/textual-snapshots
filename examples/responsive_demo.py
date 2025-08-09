@@ -16,13 +16,12 @@ Features:
 import asyncio
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 try:
     from PIL import Image, ImageDraw, ImageFont
     from textual.app import App, ComposeResult
-    from textual.containers import Container, Horizontal, Vertical
-    from textual.widgets import Button, DataTable, Footer, Header, Static, TabPane, Tabs
+    from textual.containers import Container
+    from textual.widgets import Footer, Header, Static, TabPane, Tabs
 
     from textual_snapshots import ScreenshotFormat, capture_app_screenshot
 except ImportError as e:
@@ -66,26 +65,26 @@ class ResponsiveApp(App):
         padding: 1;
         margin-bottom: 1;
     }
-    
+
     .content-grid {
         layout: grid;
         grid-size: 2 2;
         grid-gutter: 1;
         margin: 1;
     }
-    
+
     .card {
         background: $surface;
         border: solid $primary;
         padding: 1;
         text-align: center;
     }
-    
+
     .stats-container {
         layout: horizontal;
         margin: 1;
     }
-    
+
     .stat-box {
         background: $success;
         color: $text;
@@ -94,58 +93,58 @@ class ResponsiveApp(App):
         margin: 0 1;
         min-width: 15;
     }
-    
+
     .footer-info {
         background: $warning;
         color: $text;
         text-align: center;
         padding: 1;
     }
-    
+
     /* Narrow terminal styles (0-50 chars) */
     .-narrow .header-section {
         padding: 0;
     }
-    
+
     .-narrow .content-grid {
         grid-size: 1 4;
     }
-    
+
     .-narrow .card {
         padding: 0;
     }
-    
+
     .-narrow .stats-container {
         layout: vertical;
     }
-    
+
     .-narrow .stat-box {
         margin: 1 0;
     }
-    
+
     /* Compact terminal styles (51-80 chars) */
     .-compact .content-grid {
         grid-size: 1 4;
     }
-    
+
     .-compact .stats-container {
         layout: vertical;
     }
-    
+
     .-compact .stat-box {
         margin: 1 0;
     }
-    
+
     /* Standard terminal styles (81-120 chars) */
     .-standard .content-grid {
         grid-size: 2 2;
     }
-    
+
     /* Wide terminal styles (121+ chars) - enhanced layouts */
     .-wide .content-grid {
         grid-size: 4 1;
     }
-    
+
     .-wide .stats-container {
         layout: horizontal;
     }
@@ -346,7 +345,7 @@ async def capture_format_comparison():
     return format_results
 
 
-def print_summary(responsive_results: List, quality_results: List, format_results: List, composite_path: Path = None):
+def print_summary(responsive_results: list, quality_results: list, format_results: list, composite_path: Path = None):
     """Print comprehensive summary of all captures."""
     print("\n" + "\033[94m" + "=" * 60 + "\033[0m")
     print("\033[1m\033[96m📊 RESPONSIVE CAPTURE SUMMARY\033[0m")
@@ -356,7 +355,7 @@ def print_summary(responsive_results: List, quality_results: List, format_result
     if responsive_results:
         print(f"\n📱 \033[1m\033[93mResponsive Sizes Captured: {len(responsive_results)}\033[0m")
         total_size = 0
-        for format_type, size_name, result in responsive_results:
+        for _format_type, size_name, result in responsive_results:
             size_config = TERMINAL_SIZES[size_name]
             width, height = size_config["size"]
             file_size = result.file_size_bytes
@@ -479,7 +478,7 @@ async def create_responsive_composite():
         return None
 
 
-async def stitch_images(image_data: List[Tuple[str, Path, Dict]]) -> Path:
+async def stitch_images(image_data: list[tuple[str, Path, dict]]) -> Path:
     """Stitch multiple PNG images together horizontally with labels."""
     print(f"   🔧 Stitching {len(image_data)} images together...")
 
@@ -517,15 +516,15 @@ async def stitch_images(image_data: List[Tuple[str, Path, Dict]]) -> Path:
     # Try to load a font, fall back to default if not available
     try:
         font = ImageFont.truetype("/System/Library/Fonts/Arial.ttf", 14)
-    except:
+    except OSError:
         try:
             font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14)
-        except:
+        except OSError:
             font = ImageFont.load_default()
 
     # Paste images and add labels
     x_offset = 0
-    for i, (img, label) in enumerate(zip(images, labels)):
+    for _i, (img, label) in enumerate(zip(images, labels)):
         # Paste image
         y_offset = label_height + padding // 2
         composite.paste(img, (x_offset, y_offset))

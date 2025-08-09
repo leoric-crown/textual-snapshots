@@ -11,7 +11,7 @@ import subprocess
 import sys
 import webbrowser
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 
 class Colors:
@@ -56,7 +56,7 @@ class DevRunner:
         """Print error message"""
         self.log(f"❌ {message}", Colors.RED)
 
-    def run_cmd(self, cmd: List[str], check: bool = True, cwd: Optional[Path] = None) -> subprocess.CompletedProcess:
+    def run_cmd(self, cmd: list[str], check: bool = True, cwd: Optional[Path] = None) -> subprocess.CompletedProcess:
         """Run command and handle output"""
         if self.verbose:
             self.log(f"Running: {' '.join(cmd)}")
@@ -78,11 +78,11 @@ class DevRunner:
                 print(e.stderr, file=sys.stderr)
             raise
 
-    def uv_cmd(self, args: List[str]) -> subprocess.CompletedProcess:
+    def uv_cmd(self, args: list[str]) -> subprocess.CompletedProcess:
         """Run UV command"""
         return self.run_cmd(['uv'] + args)
 
-    def uv_run(self, args: List[str]) -> subprocess.CompletedProcess:
+    def uv_run(self, args: list[str]) -> subprocess.CompletedProcess:
         """Run command through UV"""
         return self.run_cmd(['uv', 'run'] + args)
 

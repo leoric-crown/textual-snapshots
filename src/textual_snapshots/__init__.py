@@ -17,6 +17,13 @@ from .detection import (
     Issue,
     ProactiveErrorDetector,
 )
+from .interactions import (
+    InteractionValidationError,
+    InteractionValidator,
+)
+from .interactions import (
+    ValidationResult as InteractionValidationResult,
+)
 from .plugins import CapturePlugin
 from .types import AppContext, QualityMetrics, ValidationResult
 from .validation import ExternalValidationSuite
@@ -40,6 +47,10 @@ __all__ = [
     "ExternalValidationSuite",
     "ValidationResult",
     "QualityMetrics",
+    # Interaction validation
+    "InteractionValidator",
+    "InteractionValidationError",
+    "InteractionValidationResult",
     # Detection system
     "ProactiveErrorDetector",
     "DetectionResult",

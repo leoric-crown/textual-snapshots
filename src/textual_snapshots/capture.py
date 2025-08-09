@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 from textual.app import App
 from textual.pilot import Pilot
 
+from .interactions import InteractionValidator
 from .types import AppContext
 
 if TYPE_CHECKING:
@@ -444,7 +445,9 @@ class ScreenshotCapture:
 
                     # Convert SVG to PNG
                     png_output_dir = screenshot_path.parent
-                    png_path = await convert_svg_to_png_async(screenshot_path, png_output_dir, "high")
+                    png_path = await convert_svg_to_png_async(
+                        screenshot_path, png_output_dir, "high"
+                    )
                     png_size = png_path.stat().st_size if png_path.exists() else 0
 
                     # For PNG-only format, make PNG the primary file and clean up SVG
@@ -459,7 +462,9 @@ class ScreenshotCapture:
                                 logger.debug(f"Cleaned up intermediate SVG file: {svg_path}")
                                 svg_path = None  # Clear the path since file is deleted
                         except Exception as cleanup_error:
-                            logger.warning(f"Failed to clean up intermediate SVG file: {cleanup_error}")
+                            logger.warning(
+                                f"Failed to clean up intermediate SVG file: {cleanup_error}"
+                            )
                             # Don't fail the capture for cleanup issues
 
                 except Exception as e:
@@ -516,7 +521,15 @@ class ScreenshotCapture:
             )
 
     async def _perform_interactions(self, pilot: Pilot[Any], interactions: list[str]) -> None:
-        """Perform interaction sequence on pilot (enhanced from original)."""
+        """Perform interaction sequence on pilot (enhanced with validation)."""
+        # Validate interactions upfront with comprehensive feedback
+        validation_result = InteractionValidator.validate_sequence(interactions)
+        if not validation_result.is_valid:
+            # Format comprehensive error message for users
+            error_message = InteractionValidator.format_validation_errors(validation_result)
+            logger.error(f"Interaction validation failed:\n{error_message}")
+            raise ValueError(f"Invalid interaction format. Details:\n{error_message}")
+
         for interaction in interactions:
             if interaction.startswith("press:"):
                 key = interaction.split(":", 1)[1]
